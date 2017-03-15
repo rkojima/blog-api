@@ -5,7 +5,7 @@ const {app, runServer, closeServer} = require('../server');
 
 const should = chai.should();
 
-chai.use(chai-http);
+chai.use(chaihttp);
 
 describe('Blog API', function() {   
     

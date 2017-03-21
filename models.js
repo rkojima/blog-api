@@ -1,4 +1,5 @@
 const uuid = require('uuid');
+const mongoose = require('mongoose');
 
 // This module provides volatile storage, using a `BlogPost`
 // model. We haven't learned about databases yet, so for now

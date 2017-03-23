@@ -14,6 +14,7 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 
 app.get('/blog-posts', (req, res) => {
+
   Blog
     .find()
     .exec()
@@ -27,8 +28,79 @@ app.get('/blog-posts', (req, res) => {
     .catch(
       err => {
         console.error(err);
-        res.status(500).json({message: "internal server error"});
+        res.status(500).json({message: "Internal server error"});
       });
+});
+
+app.get('/blog-posts/:id', (req, res) => {
+  Blog
+    .findById(req.params.id)
+    .exec()
+    .then(blogPost => res.json(blogPost.apiRepr()))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
+
+app.post('/blog-posts', (req, res) => {
+  
+  const requiredFields = ['title', 'content', 'author'];
+  requiredFields.forEach(field => {
+    if(!(field in req.body)) {
+      const message = `Missing ${field} in body`;
+      console.error(message);
+      return res.status(400).send(message);
+    }
+  });
+  Blog.create({
+    title: req.body.title,
+    content: req.body.content,
+    author: req.body.author
+  })
+  .then(
+    blog => res.status(201).json(blog.apiRepr()))
+  .catch(err => {
+    res.status(500).json({message: 'Internal server error'});
+  });
+});
+
+app.put('/blog-posts/:id', (req, res) => {
+  if(req.params.id != req.body.id) {
+    const message = `IDs are not matching`;
+    console.error(message);
+    return res.status(400).send(message);
+  }
+
+  const toUpdate = {};
+  const updateableFields = ['title', 'content', 'author'];
+  updateableFields.forEach(field => {
+    if (field in req.body) {
+      toUpdate[field] = req.body[field];
+    }
+  });
+
+  Blog
+  .findByIdAndUpdate(req.params.id, {$set: toUpdate})
+  .exec()
+  .then(blog => {
+    if(blog === null) {
+      const message = "Could not find blog post matching the ID";
+      return res.status(404).send(message);
+    }
+    res.status(204).end();
+  })
+  .catch(err => res.status(500).json({
+    message: 'Internal server error',
+    description: err
+  }));
+});
+
+app.delete('/blog-posts/:id', (req, res) => {
+  Blog.findById(req.params.id).remove()
+  .then(
+    res.status(204).end()
+    );
 });
 
 let server;

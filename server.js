@@ -13,6 +13,24 @@ const app = express();
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 
+app.get('/blog-posts', (req, res) => {
+  Blog
+    .find()
+    .exec()
+    .then(blogs => {
+      res.json({
+        blogs: blogs.map(
+          (blog) => blog.apiRepr())
+      });
+      console.log('Here');
+    })
+    .catch(
+      err => {
+        console.error(err);
+        res.status(500).json({message: "internal server error"});
+      });
+});
+
 let server;
 
 function runServer(databaseUrl = DATABASE_URL, port = PORT) {
